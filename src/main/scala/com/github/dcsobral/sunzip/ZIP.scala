@@ -29,7 +29,7 @@ import ZipConstants._
   * @param endOfCentralDirectory End Of Central Directory Record do bytebuffer passado.
   */
 final class ZIP private(byteBuffer: ByteBuffer,
-                        val endOfCentralDirectory: EndOfCentralDirectory) extends IndexedSeq[(String, Array[Byte])] {
+                        val endOfCentralDirectory: EndOfCentralDirectory) extends IndexedSeq[(String, () => Array[Byte])] {
 
   /** Número de entradas no Central Directory de acordo com o End of Central Directory Record */
   def numberOfEntries: Int = endOfCentralDirectory.numberOfEntries
@@ -37,14 +37,14 @@ final class ZIP private(byteBuffer: ByteBuffer,
   /** Coleção de entradas do Central Directory. */
   val centralDirectory: CentralDirectory = endOfCentralDirectory.centralDirectory
 
-  override def iterator: Iterator[(String, Array[Byte])] =
-    centralDirectory.iterator map (header => header.filename -> header.uncompressedData)
+  override def iterator: Iterator[(String, () => Array[Byte])] =
+    centralDirectory.iterator map (header => header.filename -> (() => header.uncompressedData))
 
   def length = centralDirectory.size
 
-  def apply(idx: Int) = centralDirectory(idx).filename -> centralDirectory(idx).uncompressedData
+  def apply(idx: Int) = centralDirectory(idx).filename -> (() => centralDirectory(idx).uncompressedData)
 
-  override def toString: String = "ZIP:\n" + centralDirectory.toString.lines.zipWithIndex.map {
+  override def toString(): String = "ZIP:\n" + centralDirectory.toString.lines.zipWithIndex.map {
     case (line, index) => "\t%d: %s" format(index, line)
   }.mkString("\n")
 }
