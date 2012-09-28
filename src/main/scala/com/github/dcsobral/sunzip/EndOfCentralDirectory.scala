@@ -37,8 +37,8 @@ final class EndOfCentralDirectory(protected val byteBuffer: ByteBuffer, protecte
   def entriesOnThisDisk: Int = getShort(EndOfCentralDirectoryEntriesOnDiskOffset)
   def entriesOnThisDisk_=(value: Int) { putShort(EndOfCentralDirectoryEntriesOnDiskOffset, value) }
 
-  def numberOfEntries: Int = getShort(EndOfCentralDirectoryEntriesOffset)
-  def numberOfEntries_=(value: Int) { putShort(EndOfCentralDirectoryEntriesOffset, value) }
+  def numberOfEntries: Int = getShort(EndOfCentralDirectoryNumberOfEntriesOffset)
+  def numberOfEntries_=(value: Int) { putShort(EndOfCentralDirectoryNumberOfEntriesOffset, value) }
 
   def sizeOfCentralDirectory: Int = getInt(EndOfCentralDirectorySizeOfCentralDirectoryOffset)
   def sizeOfCentralDirectory_=(value: Int) { putInt(EndOfCentralDirectorySizeOfCentralDirectoryOffset, value) }

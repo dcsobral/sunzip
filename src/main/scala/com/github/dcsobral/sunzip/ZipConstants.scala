@@ -56,7 +56,7 @@ object ZipConstants {
   final val EndOfCentralDirectoryDiskNumberOffset = 4
   final val EndOfCentralDirectoryStartingDiskOfCentralDirectoryOffset = 6
   final val EndOfCentralDirectoryEntriesOnDiskOffset = 8
-  final val EndOfCentralDirectoryEntriesOffset = 10
+  final val EndOfCentralDirectoryNumberOfEntriesOffset = 10
   final val EndOfCentralDirectorySizeOfCentralDirectoryOffset = 12
   final val EndOfCentralDirectoryOffsetOfCentralDirectoryOffset = 16
   final val EndOfCentralDirectoryCommentLengthOffset = 20
