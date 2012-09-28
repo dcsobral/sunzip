@@ -7,8 +7,6 @@
 
 package com.github.dcsobral.sunzip
 
-import java.nio.ByteBuffer
-import java.nio.ByteOrder.{LITTLE_ENDIAN => LittleEndian}
 import ZipConstants._
 
 /** Arquivo ZIP em Memória.
@@ -28,7 +26,7 @@ import ZipConstants._
   * @param byteBuffer Byte buffer contendo todo o arquivo ZIP.
   * @param endOfCentralDirectory End Of Central Directory Record do bytebuffer passado.
   */
-final class ZIP private(byteBuffer: ByteBuffer,
+final class ZIP private(byteBuffer: Array[Byte],
                         val endOfCentralDirectory: EndOfCentralDirectory) extends IndexedSeq[(String, () => Array[Byte])] {
 
   /** Número de entradas no Central Directory de acordo com o End of Central Directory Record */
@@ -40,11 +38,12 @@ final class ZIP private(byteBuffer: ByteBuffer,
   override def iterator: Iterator[(String, () => Array[Byte])] =
     centralDirectory.iterator map (header => header.filename -> (() => header.uncompressedData))
 
-  def length = centralDirectory.size
+  def length: Int = centralDirectory.size
 
-  def apply(idx: Int) = centralDirectory(idx).filename -> (() => centralDirectory(idx).uncompressedData)
+  def apply(idx: Int): (String, () => Array[Byte]) =
+    centralDirectory(idx).filename -> (() => centralDirectory(idx).uncompressedData)
 
-  override def toString(): String = "ZIP:\n" + centralDirectory.toString.lines.zipWithIndex.map {
+  override def toString(): String = "ZIP:\n" + centralDirectory.toString().lines.zipWithIndex.map {
     case (line, index) => "\t%d: %s" format(index, line)
   }.mkString("\n")
 }
@@ -59,26 +58,22 @@ object ZIP {
     * @return Objeto ZIP.
     */
   def apply(array: Array[Byte]): Option[ZIP] = {
-    val bb = ByteBuffer wrap array
-
-    bb order LittleEndian
-
     try {
-      findEndOfCentralDirectoryHeader(bb) map { offset =>
-        val endOfCentralDirectoryHeader = new EndOfCentralDirectory(bb, offset)
-        new ZIP(bb, endOfCentralDirectoryHeader)
+      findEndOfCentralDirectoryHeader(array) map { offset =>
+        val endOfCentralDirectoryHeader = new EndOfCentralDirectory(array, offset)
+        new ZIP(array, endOfCentralDirectoryHeader)
       } filter (_.centralDirectory.forall(_.temAssinaturaValida))
     } catch {
       case _: Exception => None
     }
   }
 
-  private[this] def findEndOfCentralDirectoryHeader(bb: ByteBuffer): Option[Int] = {
-    if (bb.limit < EndOfCentralDirectorySize) None
+  private[this] def findEndOfCentralDirectoryHeader(array: Array[Byte]): Option[Int] = {
+    if (array.length < EndOfCentralDirectorySize) None
     else {
-      var pos = bb.limit - EndOfCentralDirectorySize
+      var pos = array.length - EndOfCentralDirectorySize
 
-      while (pos > 0 && bb.getInt(pos) != EndOfCentralDirectorySignature) pos -= 1
+      while (pos > 0 && Header.getInt(array, pos) != EndOfCentralDirectorySignature) pos -= 1
 
       if (pos > 0) Some(pos) else None
     }

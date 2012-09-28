@@ -7,7 +7,6 @@
 
 package com.github.dcsobral.sunzip
 
-import java.nio.ByteBuffer
 import ZipConstants._
 
 /** Registro final do arquivo ZIP, a partir do qual todas as demais entradas são encontradas.
@@ -17,38 +16,28 @@ import ZipConstants._
   * existem no central directory, e, a partir dessas entradas, localizar as entradas locais que
   * precedem cada arquivo compactado.
   *
-  * @param byteBuffer Arquivo ZIP.
+  * @param zipFile Arquivo ZIP.
   * @param offset Offset onde se encontra o End Of Central Directory Record.
   */
-final class EndOfCentralDirectory(protected val byteBuffer: ByteBuffer, protected val offset: Int) extends Header {
+final class EndOfCentralDirectory(protected val zipFile: Array[Byte], protected val offset: Int) extends Header {
   def temAssinaturaValida: Boolean = signature == EndOfCentralDirectorySignature
 
   def signature: Int = getInt(EndOfCentralDirectorySignatureOffset)
-  def signature_=(value: Int) { putInt(EndOfCentralDirectorySignatureOffset, value) }
 
   def numberOfDisks: Int = getShort(EndOfCentralDirectoryDiskNumberOffset)
-  def numberOfDisks_=(value: Int) { putShort(EndOfCentralDirectoryDiskNumberOffset, value) }
 
   def centralDirectoryStartingDisk: Int = getShort(EndOfCentralDirectoryStartingDiskOfCentralDirectoryOffset)
-  def centralDirectoryStartingDisk_=(value: Int) {
-    putShort(EndOfCentralDirectoryStartingDiskOfCentralDirectoryOffset, value)
-  }
 
   def entriesOnThisDisk: Int = getShort(EndOfCentralDirectoryEntriesOnDiskOffset)
-  def entriesOnThisDisk_=(value: Int) { putShort(EndOfCentralDirectoryEntriesOnDiskOffset, value) }
 
   def numberOfEntries: Int = getShort(EndOfCentralDirectoryNumberOfEntriesOffset)
-  def numberOfEntries_=(value: Int) { putShort(EndOfCentralDirectoryNumberOfEntriesOffset, value) }
 
   def sizeOfCentralDirectory: Int = getInt(EndOfCentralDirectorySizeOfCentralDirectoryOffset)
-  def sizeOfCentralDirectory_=(value: Int) { putInt(EndOfCentralDirectorySizeOfCentralDirectoryOffset, value) }
 
   def offsetOfCentralDirectory: Int = getInt(EndOfCentralDirectoryOffsetOfCentralDirectoryOffset)
-  def offsetOfCentralDirectory_=(value: Int) { putInt(EndOfCentralDirectoryOffsetOfCentralDirectoryOffset, value) }
 
   def commentLength: Int = getInt(EndOfCentralDirectoryCommentLengthOffset)
-  def commentLength_=(value: Int) = { putInt(EndOfCentralDirectoryCommentLengthOffset, value) }
 
   /** Coleção de entradas do Central Directory. */
-  def centralDirectory: CentralDirectory = new CentralDirectory(byteBuffer, offsetOfCentralDirectory, numberOfEntries)
+  def centralDirectory: CentralDirectory = new CentralDirectory(zipFile, offsetOfCentralDirectory, numberOfEntries)
 }
