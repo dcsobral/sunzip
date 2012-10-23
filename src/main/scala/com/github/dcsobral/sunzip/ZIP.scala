@@ -8,6 +8,7 @@
 package com.github.dcsobral.sunzip
 
 import ZipConstants._
+import grizzled.slf4j.Logger
 
 /** Arquivo ZIP em Memória.
   *
@@ -50,6 +51,8 @@ final class ZIP private(byteBuffer: Array[Byte],
 
 /** Factory para objetos ZIP */
 object ZIP {
+  private[this] val logger = Logger[this.type]
+
   /** Retorna objeto ZIP se for encontrado um End Of Central Directory, e se o mesmo,
     * e todas as entradas de Central Directory localizadas a partir dele, tiverem
     * assinaturas válidas.
@@ -59,12 +62,18 @@ object ZIP {
     */
   def apply(array: Array[Byte]): Option[ZIP] = {
     try {
-      findEndOfCentralDirectoryHeader(array) map { offset =>
+      val resultado = findEndOfCentralDirectoryHeader(array) map { offset =>
         val endOfCentralDirectoryHeader = new EndOfCentralDirectory(array, offset)
         new ZIP(array, endOfCentralDirectoryHeader)
       } filter (_.centralDirectory.forall(_.temAssinaturaValida))
+
+      if (resultado.isEmpty) logger error "No valid signature found on ZIP file!"
+
+      resultado
     } catch {
-      case _: Exception => None
+      case ex: Exception =>
+        logger error "Exception thrown while creating ZIP object: %s".format(ex.getMessage)
+        None
     }
   }
 
